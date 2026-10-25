@@ -1,97 +1,77 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# SuperMarketPlus
 
-# Getting Started
+Multi-tenant grocery e-commerce for food cities. One customer app serves every tenant: shoppers pick their food city and store, then browse, order for pickup or delivery, and pay on fulfilment. Each tenant's owners and staff run their own catalogue, stores, orders and team from a web admin.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
-
-## Step 1: Start Metro
-
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
-
-To start the Metro dev server, run the following command from the root of your React Native project:
-
-```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
+```
+ Mobile app (React Native) ─┐   anon key + user JWT     ┌─ Postgres + RLS  (tenant isolation, order RPCs)
+ Web admin  (React + Vite) ─┼──────────────────────────► │  Auth            (email + password)
+                            │                           └─ Storage         (product-images/<tenant_id>/…)
+                            └─► Node API (Fastify) ── service role ──► staff invites / removal only
 ```
 
-## Step 2: Build and run your app
+| Folder | What | Run |
+|---|---|---|
+| `supabase/` | Schema, RLS, order functions, seed (2 demo tenants) | `npx supabase start` (needs Docker) |
+| `server/` | Node API + all backend tests | `npm test`, `npm run dev` |
+| `/` (root) | React Native app | `npm start`, `npm run android` / `ios` |
+| `admin/` | Web admin for owners/admins/staff | `npm run dev` |
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+## Security model
 
-### Android
+- **RLS is the tenant boundary.** Every business row has `tenant_id`, and composite foreign keys `(tenant_id, id)` make cross-tenant references impossible. Clients only ever hold the anon key, so a bug in client code can't reach another tenant's data.
+- **Roles per tenant** are `owner`, `admin` and `staff`, stored in `tenant_members`. Customers need no membership row. Clients can't write `tenant_members` at all. Owners invite admins and staff, admins invite staff, and ownership is never granted by the API. Joining needs the invitee's consent: the Node API writes a 14-day `tenant_invites` row, and only someone signed in with that **confirmed** email can turn it into a membership (`accept_invite()`, from the banner in the admin). Existing members are re-roled directly.
+- **Money and stock are server-side.** `place_order()` prices every line from the database, applies fees and minimums, and decrements stock atomically, so concurrent orders can't oversell. Clients can't insert or update orders. Status changes go through `set_order_status()`, a single state machine that restocks on cancel.
+- **Column-level grants.** Staff can change only price, stock and availability. Customers can edit only their own name and phone.
+- **Sessions** are stored in the iOS Keychain or Android Keystore. Only public catalogue data is cached on disk (MMKV), and per-user queries are dropped on sign-out.
+- **Auth policy:** email confirmation is required, passwords must be at least 10 characters with letters and digits, refresh-token rotation is on, and changing a password requires reauthentication. See `supabase/config.toml`, and set the same values in the hosted project's Auth settings.
+- **Abuse limits:** a customer can have at most 5 pending orders. The member API gives the same response whether or not an email has an account, and is limited to 20 changes per hour per caller.
+- **API hardening:** helmet, CORS allow-list, rate limit (60 requests per minute per IP), 16 KB body limit, zod validation, authorization header redacted from logs, and 5xx details hidden from clients.
 
-```sh
-# Using npm
-npm run android
+`server/test/db.test.ts` runs the real migration and seed in embedded Postgres (PGlite) and proves the following: anon access is read-only, totals come from the server, stock can't be oversold, staff can't reach another tenant's orders, stock, products or images, privilege escalation is blocked, and the order state machine is enforced.
 
-# OR using Yarn
-yarn android
+## Performance
+
+- Hermes engine (React Native's default).
+- FlashList grid. Each product card subscribes only to its own cart line, so changing a quantity re-renders one card.
+- TanStack Query cache persisted to MMKV, so the catalogue renders instantly on relaunch and refreshes in the background.
+- `store_catalog` view, so the shop screen pages through products with one indexed query of 40 rows per page. Search is debounced.
+- Supabase image transforms for thumbnails in production (`IMAGE_TRANSFORMS` in `src/config.ts`).
+
+## Local setup
+
+1. **Database:** start Docker, then run:
+   ```bash
+   npx supabase start
+   ```
+   It applies the migration and the seed, and prints the API URL, the anon key and the service-role key.
+2. **API:**
+   ```bash
+   cd server && cp .env.example .env
+   ```
+   Fill in `SUPABASE_SERVICE_ROLE_KEY`, then run `npm run dev`.
+3. **Admin:**
+   ```bash
+   cd admin && cp .env.example .env.local
+   ```
+   Fill in the anon key, then run `npm run dev` (it serves on http://localhost:5173).
+4. **Mobile:** put the anon key in `src/config.ts`, then run `npm start` and `npm run android` (or `cd ios && bundle exec pod install && cd .. && npm run ios`).
+5. **First owner:** sign up in the app, then confirm the email from the local mail catcher (http://127.0.0.1:54324). In Supabase Studio (http://127.0.0.1:54323), run:
+   ```sql
+   insert into tenant_members (tenant_id, user_id, role)
+   select '11111111-1111-4111-8111-111111111111', id, 'owner' from auth.users where email = 'you@example.com';
+   ```
+   After that, invite everyone else from the admin's Team page. New people get a Supabase invite email: the link signs them in to the admin, asks them to set a password, and shows the invite to accept. People who already have an account see the invite banner the next time they sign in to the admin. Nothing emails them yet, so tell them.
+
+New food city: insert a row into `tenants`, add stores, and grant an owner as above.
+
+## Checks
+
+```bash
+cd server && npm test && npm run typecheck   # DB security + API tests
+npx tsc --noEmit && npx jest && npx eslint . # mobile
+cd admin && npm run build                    # admin typecheck + build
 ```
 
-### iOS
+## Not built yet (deliberately)
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+Online payments (orders are pay on pickup or delivery), push notifications, realtime order updates (the admin polls every 15 seconds), delivery slots and tracking, promotions, a platform super-admin for creating tenants (use SQL for now), generated DB types (`supabase gen types`), and CI.
