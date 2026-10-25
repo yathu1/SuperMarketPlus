@@ -22,16 +22,33 @@ const secureStorage = {
 };
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { storage: secureStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+  auth: {
+    storage: secureStorage,
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: false,
+  },
 });
 
 // Only refresh tokens while the app is in the foreground.
 AppState.addEventListener('change', state =>
-  state === 'active' ? supabase.auth.startAutoRefresh() : supabase.auth.stopAutoRefresh(),
+  state === 'active'
+    ? supabase.auth.startAutoRefresh()
+    : supabase.auth.stopAutoRefresh(),
 );
 
 export function imageUrl(path: string | null, size = 320) {
   if (!path) return undefined;
-  const transform = IMAGE_TRANSFORMS ? { transform: { width: size, height: size, resize: 'contain' as const, quality: 70 } } : undefined;
-  return supabase.storage.from('product-images').getPublicUrl(path, transform).data.publicUrl;
+  const transform = IMAGE_TRANSFORMS
+    ? {
+        transform: {
+          width: size,
+          height: size,
+          resize: 'contain' as const,
+          quality: 70,
+        },
+      }
+    : undefined;
+  return supabase.storage.from('product-images').getPublicUrl(path, transform)
+    .data.publicUrl;
 }

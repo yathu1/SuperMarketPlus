@@ -1,10 +1,27 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, Image, Pressable, Text, TextInput, View } from 'react-native';
+import {
+  FlatList,
+  Image,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useCatalog, useCategories } from '../lib/queries';
 import { imageUrl } from '../lib/supabase';
 import { MAX_QTY, useShop } from '../state/shop';
-import { Button, Empty, Loading, Money, Stepper, colors, space, styles, useBrand } from '../ui';
+import {
+  Button,
+  Empty,
+  Loading,
+  Money,
+  Stepper,
+  colors,
+  space,
+  styles,
+  useBrand,
+} from '../ui';
 import type { CatalogItem } from '../types';
 
 function useDebounced<T>(value: T, ms = 300) {
@@ -26,11 +43,18 @@ export function ShopScreen() {
   const categories = useCategories(tenant.id);
   const catalog = useCatalog(store.id, category, query);
   const items = useMemo(() => catalog.data?.pages.flat() ?? [], [catalog.data]);
-  const chips = useMemo(() => [{ id: null, name: 'All' }, ...(categories.data ?? [])], [categories.data]);
+  const chips = useMemo(
+    () => [{ id: null, name: 'All' }, ...(categories.data ?? [])],
+    [categories.data],
+  );
 
-  const renderItem = useCallback(({ item }: { item: CatalogItem }) => <ProductCard item={item} />, []);
+  const renderItem = useCallback(
+    ({ item }: { item: CatalogItem }) => <ProductCard item={item} />,
+    [],
+  );
   const onEndReached = () => {
-    if (catalog.hasNextPage && !catalog.isFetchingNextPage) catalog.fetchNextPage();
+    if (catalog.hasNextPage && !catalog.isFetchingNextPage)
+      catalog.fetchNextPage();
   };
 
   return (
@@ -61,9 +85,21 @@ export function ShopScreen() {
               accessibilityRole="button"
               accessibilityState={{ selected: active }}
               onPress={() => setCategory(item.id)}
-              style={[styles.pill, { paddingHorizontal: space(3), paddingVertical: space(1.5), borderColor: brand, backgroundColor: active ? brand : 'transparent' }]}
+              style={[
+                styles.pill,
+                {
+                  paddingHorizontal: space(3),
+                  paddingVertical: space(1.5),
+                  borderColor: brand,
+                  backgroundColor: active ? brand : 'transparent',
+                },
+              ]}
             >
-              <Text style={{ color: active ? '#fff' : brand, fontWeight: '600' }}>{item.name}</Text>
+              <Text
+                style={{ color: active ? '#fff' : brand, fontWeight: '600' }}
+              >
+                {item.name}
+              </Text>
             </Pressable>
           );
         }}
@@ -80,12 +116,23 @@ export function ShopScreen() {
           numColumns={2}
           keyExtractor={i => i.product_id}
           renderItem={renderItem}
-          contentContainerStyle={{ paddingHorizontal: space(2), paddingBottom: space(6) }}
+          contentContainerStyle={{
+            paddingHorizontal: space(2),
+            paddingBottom: space(6),
+          }}
           onEndReached={onEndReached}
           onEndReachedThreshold={0.5}
           refreshing={catalog.isRefetching && !catalog.isFetchingNextPage}
           onRefresh={() => catalog.refetch()}
-          ListEmptyComponent={<Empty title={query ? `No products match “${query}”.` : 'No products here yet.'} />}
+          ListEmptyComponent={
+            <Empty
+              title={
+                query
+                  ? `No products match “${query}”.`
+                  : 'No products here yet.'
+              }
+            />
+          }
           ListFooterComponent={catalog.isFetchingNextPage ? <Loading /> : null}
         />
       )}
@@ -100,14 +147,40 @@ const ProductCard = memo(function ProductCard({ item }: { item: CatalogItem }) {
   const uri = imageUrl(item.image_path);
   const max = Math.min(item.stock, MAX_QTY);
   const onChange = useCallback(
-    (q: number) => setQty({ productId: item.product_id, name: item.name, priceCents: item.price_cents, imagePath: item.image_path }, q),
+    (q: number) =>
+      setQty(
+        {
+          productId: item.product_id,
+          name: item.name,
+          priceCents: item.price_cents,
+          imagePath: item.image_path,
+        },
+        q,
+      ),
     [item, setQty],
   );
 
   return (
-    <View style={[styles.card, { margin: space(1.5), padding: space(3), flex: 1 }]}>
-      <View style={{ aspectRatio: 1, borderRadius: 8, backgroundColor: colors.bg, marginBottom: space(2), overflow: 'hidden' }}>
-        {uri ? <Image source={{ uri }} style={{ width: '100%', height: '100%' }} resizeMode="contain" accessibilityIgnoresInvertColors /> : null}
+    <View
+      style={[styles.card, { margin: space(1.5), padding: space(3), flex: 1 }]}
+    >
+      <View
+        style={{
+          aspectRatio: 1,
+          borderRadius: 8,
+          backgroundColor: colors.bg,
+          marginBottom: space(2),
+          overflow: 'hidden',
+        }}
+      >
+        {uri ? (
+          <Image
+            source={{ uri }}
+            style={{ width: '100%', height: '100%' }}
+            resizeMode="contain"
+            accessibilityIgnoresInvertColors
+          />
+        ) : null}
       </View>
       <Text style={styles.text} numberOfLines={2}>
         {item.name}
@@ -116,7 +189,18 @@ const ProductCard = memo(function ProductCard({ item }: { item: CatalogItem }) {
         <Money cents={item.price_cents} style={{ fontWeight: '700' }} />
         <Text style={styles.muted}>/ {item.unit}</Text>
       </View>
-      {item.stock > 0 ? <Stepper qty={qty} max={max} onChange={onChange} /> : <Text style={[styles.muted, { textAlign: 'center', paddingVertical: space(2) }]}>Out of stock</Text>}
+      {item.stock > 0 ? (
+        <Stepper qty={qty} max={max} onChange={onChange} />
+      ) : (
+        <Text
+          style={[
+            styles.muted,
+            { textAlign: 'center', paddingVertical: space(2) },
+          ]}
+        >
+          Out of stock
+        </Text>
+      )}
     </View>
   );
 });

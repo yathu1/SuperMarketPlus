@@ -1,6 +1,6 @@
 # SuperMarketPlus
 
-Multi-tenant grocery e-commerce for food cities. One customer app serves every tenant: shoppers pick their food city and store, then browse, order for pickup or delivery, and pay on fulfilment. Each tenant's owners and staff run their own catalogue, stores, orders and team from a web admin.
+Multi-tenant grocery e-commerce for food cities in Malaysia. One customer app serves every tenant: shoppers pick their food city and store, then browse, order for pickup or delivery, and pay on fulfilment. Each tenant's owners and staff run their own catalogue, stores, orders and team from a web admin.
 
 ```
  Mobile app (React Native) ─┐   anon key + user JWT     ┌─ Postgres + RLS  (tenant isolation, order RPCs)
@@ -11,7 +11,7 @@ Multi-tenant grocery e-commerce for food cities. One customer app serves every t
 
 | Folder | What | Run |
 |---|---|---|
-| `supabase/` | Schema, RLS, order functions, seed (2 demo tenants) | `npx supabase start` (needs Docker) |
+| `supabase/` | Schema, RLS, order functions, seed (2 Malaysian demo food cities) | `npx supabase start` (needs Docker) |
 | `server/` | Node API + all backend tests | `npm test`, `npm run dev` |
 | `/` (root) | React Native app | `npm start`, `npm run android` / `ios` |
 | `admin/` | Web admin for owners/admins/staff | `npm run dev` |
@@ -72,6 +72,15 @@ npx tsc --noEmit && npx jest && npx eslint . # mobile
 cd admin && npm run build                    # admin typecheck + build
 ```
 
+## Malaysia defaults
+
+- **Currency:** each tenant row has a `currency`. Use `MYR`; prices are stored in sen, and both apps format them with the `en-MY` locale (`RM 12.50`).
+- **Addresses:** the app requires a 5-digit postcode and asks for city and state (for example Selangor). The database check stays generic in case a tenant ever opens outside Malaysia.
+- **Seed data:** the demo food cities are KL (Bangsar, Petaling Jaya) and Penang (George Town). They're for local development and tests only, and are never pushed to the cloud project.
+- **Hosting:** keep the Supabase project in **Singapore (ap-southeast-1)** for low latency.
+- **Before launch:** a PDPA (Personal Data Protection Act 2010) privacy notice. Most basic groceries are SST-exempt, so there's no tax calculation yet.
+- **Language:** English only for now.
+
 ## Not built yet (deliberately)
 
-Online payments (orders are pay on pickup or delivery), push notifications, realtime order updates (the admin polls every 15 seconds), delivery slots and tracking, promotions, a platform super-admin for creating tenants (use SQL for now), generated DB types (`supabase gen types`), and CI.
+Online payments (orders are pay on pickup or delivery; FPX, DuitNow QR, Touch 'n Go and GrabPay would come via Billplz, iPay88 or Stripe), push notifications, realtime order updates (the admin polls every 15 seconds), delivery slots and tracking, promotions, a platform super-admin for creating tenants (use SQL for now), generated DB types (`supabase gen types`), and CI.

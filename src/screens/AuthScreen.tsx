@@ -21,17 +21,37 @@ export function AuthScreen() {
     const { data, error: err } =
       mode === 'signin'
         ? await supabase.auth.signInWithPassword(creds)
-        : await supabase.auth.signUp({ ...creds, options: { data: { full_name: fullName.trim() } } });
+        : await supabase.auth.signUp({
+            ...creds,
+            options: { data: { full_name: fullName.trim() } },
+          });
     setBusy(false);
     if (err) return setError(err.message);
-    if (!data.session) return setNotice('Check your email to confirm your account, then sign in.');
+    if (!data.session)
+      return setNotice(
+        'Check your email to confirm your account, then sign in.',
+      );
     navigation.goBack();
   };
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.pad} keyboardShouldPersistTaps="handled">
-      <Text style={[styles.h1, { marginBottom: space(4) }]}>{mode === 'signin' ? 'Welcome back' : 'Create account'}</Text>
-      {mode === 'signup' ? <Field label="Full name" value={fullName} onChangeText={setFullName} autoComplete="name" maxLength={120} /> : null}
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.pad}
+      keyboardShouldPersistTaps="handled"
+    >
+      <Text style={[styles.h1, { marginBottom: space(4) }]}>
+        {mode === 'signin' ? 'Welcome back' : 'Create account'}
+      </Text>
+      {mode === 'signup' ? (
+        <Field
+          label="Full name"
+          value={fullName}
+          onChangeText={setFullName}
+          autoComplete="name"
+          maxLength={120}
+        />
+      ) : null}
       <Field
         label="Email"
         value={email}
@@ -49,9 +69,17 @@ export function AuthScreen() {
         autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
         textContentType={mode === 'signin' ? 'password' : 'newPassword'}
       />
-      {mode === 'signup' ? <Text style={[styles.muted, { marginBottom: space(3) }]}>At least 10 characters, with letters and numbers.</Text> : null}
+      {mode === 'signup' ? (
+        <Text style={[styles.muted, { marginBottom: space(3) }]}>
+          At least 10 characters, with letters and numbers.
+        </Text>
+      ) : null}
       {error ? <ErrorText>{error}</ErrorText> : null}
-      {notice ? <Text style={[styles.text, { marginVertical: space(2) }]}>{notice}</Text> : null}
+      {notice ? (
+        <Text style={[styles.text, { marginVertical: space(2) }]}>
+          {notice}
+        </Text>
+      ) : null}
       <Button
         title={mode === 'signin' ? 'Sign in' : 'Create account'}
         onPress={submit}
@@ -59,9 +87,15 @@ export function AuthScreen() {
         disabled={!email || !password}
         style={{ marginTop: space(2) }}
       />
-      <Pressable onPress={() => setMode(mode === 'signin' ? 'signup' : 'signin')} style={{ marginTop: space(4) }} hitSlop={8}>
+      <Pressable
+        onPress={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
+        style={{ marginTop: space(4) }}
+        hitSlop={8}
+      >
         <Text style={[styles.muted, { textAlign: 'center' }]}>
-          {mode === 'signin' ? 'New here? Create an account' : 'Already have an account? Sign in'}
+          {mode === 'signin'
+            ? 'New here? Create an account'
+            : 'Already have an account? Sign in'}
         </Text>
       </Pressable>
     </ScrollView>

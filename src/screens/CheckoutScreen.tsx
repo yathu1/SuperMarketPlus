@@ -4,7 +4,16 @@ import { StackActions, useNavigation } from '@react-navigation/native';
 import { useAddresses, usePlaceOrder } from '../lib/queries';
 import { useSession } from '../lib/session';
 import { useShop } from '../state/shop';
-import { Button, ErrorText, Field, Money, colors, space, styles, useBrand } from '../ui';
+import {
+  Button,
+  ErrorText,
+  Field,
+  Money,
+  colors,
+  space,
+  styles,
+  useBrand,
+} from '../ui';
 import { useLiveCart } from './CartScreen';
 
 export function CheckoutScreen() {
@@ -22,13 +31,15 @@ export function CheckoutScreen() {
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
-    if (!addressId && addresses.data?.length) setAddressId(addresses.data[0].id);
+    if (!addressId && addresses.data?.length)
+      setAddressId(addresses.data[0].id);
   }, [addresses.data, addressId]);
 
   const delivery = fulfilment === 'delivery';
   const fee = delivery ? store.delivery_fee_cents : 0;
   const belowMin = delivery && subtotal < store.min_order_cents;
-  const canSubmit = rows.length > 0 && !hasProblem && !belowMin && (!delivery || !!addressId);
+  const canSubmit =
+    rows.length > 0 && !hasProblem && !belowMin && (!delivery || !!addressId);
 
   const submit = () =>
     placeOrder.mutate(
@@ -47,20 +58,38 @@ export function CheckoutScreen() {
       },
     );
 
-  const option = (value: 'pickup' | 'delivery', label: string, enabled = true) => (
+  const option = (
+    value: 'pickup' | 'delivery',
+    label: string,
+    enabled = true,
+  ) => (
     <Pressable
       accessibilityRole="radio"
-      accessibilityState={{ selected: fulfilment === value, disabled: !enabled }}
+      accessibilityState={{
+        selected: fulfilment === value,
+        disabled: !enabled,
+      }}
       disabled={!enabled}
       onPress={() => setFulfilment(value)}
-      style={[styles.card, { flex: 1, borderColor: fulfilment === value ? brand : colors.border, opacity: enabled ? 1 : 0.4 }]}
+      style={[
+        styles.card,
+        {
+          flex: 1,
+          borderColor: fulfilment === value ? brand : colors.border,
+          opacity: enabled ? 1 : 0.4,
+        },
+      ]}
     >
       <Text style={styles.h2}>{label}</Text>
     </Pressable>
   );
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={[styles.pad, { gap: space(4) }]} keyboardShouldPersistTaps="handled">
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={[styles.pad, { gap: space(4) }]}
+      keyboardShouldPersistTaps="handled"
+    >
       <View style={{ flexDirection: 'row', gap: space(3) }}>
         {option('pickup', 'Pickup')}
         {option('delivery', 'Delivery', store.offers_delivery)}
@@ -75,15 +104,24 @@ export function CheckoutScreen() {
               accessibilityRole="radio"
               accessibilityState={{ selected: a.id === addressId }}
               onPress={() => setAddressId(a.id)}
-              style={[styles.card, { borderColor: a.id === addressId ? brand : colors.border }]}
+              style={[
+                styles.card,
+                { borderColor: a.id === addressId ? brand : colors.border },
+              ]}
             >
               <Text style={styles.text}>{a.label || a.line1}</Text>
               <Text style={styles.muted}>
-                {[a.line1, a.line2, a.suburb, a.state, a.postcode].filter(Boolean).join(', ')}
+                {[a.line1, a.line2, a.suburb, a.state, a.postcode]
+                  .filter(Boolean)
+                  .join(', ')}
               </Text>
             </Pressable>
           ))}
-          <Button title="Add address" variant="secondary" onPress={() => navigation.navigate('AddressForm')} />
+          <Button
+            title="Add address"
+            variant="secondary"
+            onPress={() => navigation.navigate('AddressForm')}
+          />
         </View>
       ) : (
         <View style={styles.card}>
@@ -92,7 +130,13 @@ export function CheckoutScreen() {
         </View>
       )}
 
-      <Field label="Notes for the store (optional)" value={notes} onChangeText={setNotes} maxLength={500} multiline />
+      <Field
+        label="Notes for the store (optional)"
+        value={notes}
+        onChangeText={setNotes}
+        maxLength={500}
+        multiline
+      />
 
       <View style={[styles.card, { gap: space(2) }]}>
         <View style={styles.row}>
@@ -110,18 +154,30 @@ export function CheckoutScreen() {
           <Text style={styles.h2}>Total</Text>
           <Money cents={subtotal + fee} style={styles.h2} />
         </View>
-        <Text style={styles.muted}>Pay by cash or card on {delivery ? 'delivery' : 'pickup'}.</Text>
+        <Text style={styles.muted}>
+          Pay by cash or card on {delivery ? 'delivery' : 'pickup'}.
+        </Text>
       </View>
 
       {belowMin ? (
         <ErrorText>
-          Delivery needs a minimum order of <Money cents={store.min_order_cents} style={styles.error} />.
+          Delivery needs a minimum order of{' '}
+          <Money cents={store.min_order_cents} style={styles.error} />.
         </ErrorText>
       ) : null}
-      {hasProblem ? <ErrorText>Some items changed. Review your cart.</ErrorText> : null}
-      {placeOrder.error ? <ErrorText>{placeOrder.error.message}</ErrorText> : null}
+      {hasProblem ? (
+        <ErrorText>Some items changed. Review your cart.</ErrorText>
+      ) : null}
+      {placeOrder.error ? (
+        <ErrorText>{placeOrder.error.message}</ErrorText>
+      ) : null}
 
-      <Button title="Place order" onPress={submit} loading={placeOrder.isPending} disabled={!canSubmit} />
+      <Button
+        title="Place order"
+        onPress={submit}
+        loading={placeOrder.isPending}
+        disabled={!canSubmit}
+      />
     </ScrollView>
   );
 }

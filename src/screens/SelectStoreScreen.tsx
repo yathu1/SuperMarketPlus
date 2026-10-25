@@ -3,7 +3,15 @@ import { FlatList, Pressable, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useStores, useTenants } from '../lib/queries';
 import { useShop } from '../state/shop';
-import { Button, Empty, ErrorText, Loading, formatMoney, space, styles } from '../ui';
+import {
+  Button,
+  Empty,
+  ErrorText,
+  Loading,
+  formatMoney,
+  space,
+  styles,
+} from '../ui';
 import type { Tenant } from '../types';
 
 const Gap = () => <View style={{ height: space(3) }} />;
@@ -33,9 +41,25 @@ export function SelectStoreScreen() {
         ItemSeparatorComponent={Gap}
         ListEmptyComponent={<Empty title="No food cities available yet." />}
         renderItem={({ item }) => (
-          <Pressable accessibilityRole="button" onPress={() => setTenant(item)} style={styles.card}>
-            <View style={[styles.row, { justifyContent: 'flex-start', gap: space(3) }]}>
-              <View style={{ width: 12, height: 40, borderRadius: 6, backgroundColor: item.primary_color ?? '#999' }} />
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setTenant(item)}
+            style={styles.card}
+          >
+            <View
+              style={[
+                styles.row,
+                { justifyContent: 'flex-start', gap: space(3) },
+              ]}
+            >
+              <View
+                style={{
+                  width: 12,
+                  height: 40,
+                  borderRadius: 6,
+                  backgroundColor: item.primary_color ?? '#999',
+                }}
+              />
               <Text style={styles.h2}>{item.name}</Text>
             </View>
           </Pressable>
@@ -55,12 +79,22 @@ export function SelectStoreScreen() {
         <View style={{ marginBottom: space(4) }}>
           <Text style={styles.h1}>{tenant.name}</Text>
           <Pressable onPress={() => setTenant(null)} hitSlop={8}>
-            <Text style={[styles.muted, { marginTop: space(1) }]}>← Choose a different food city</Text>
+            <Text style={[styles.muted, { marginTop: space(1) }]}>
+              ← Choose a different food city
+            </Text>
           </Pressable>
-          {stores.isError ? <ErrorText>{stores.error.message}</ErrorText> : null}
+          {stores.isError ? (
+            <ErrorText>{stores.error.message}</ErrorText>
+          ) : null}
         </View>
       }
-      ListEmptyComponent={stores.isPending ? <Loading /> : <Empty title="No stores open in this food city." />}
+      ListEmptyComponent={
+        stores.isPending ? (
+          <Loading />
+        ) : (
+          <Empty title="No stores open in this food city." />
+        )
+      }
       renderItem={({ item }) => (
         <Pressable
           accessibilityRole="button"
@@ -74,7 +108,10 @@ export function SelectStoreScreen() {
           <Text style={styles.muted}>{item.address}</Text>
           <Text style={[styles.muted, { marginTop: space(2) }]}>
             {item.offers_delivery
-              ? `Pickup · Delivery ${formatMoney(item.delivery_fee_cents, tenant.currency)}`
+              ? `Pickup · Delivery ${formatMoney(
+                  item.delivery_fee_cents,
+                  tenant.currency,
+                )}`
               : 'Pickup only'}
           </Text>
         </Pressable>

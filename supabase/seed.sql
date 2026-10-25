@@ -1,12 +1,13 @@
--- Demo data: two independent food cities. Fixed UUIDs keep tests and docs stable.
+-- Demo data: two independent Malaysian food cities (local dev/tests only; never pushed to cloud).
+-- Fixed UUIDs keep tests and docs stable. Prices are in sen (MYR cents).
 insert into public.tenants (id, slug, name, primary_color, currency) values
-  ('11111111-1111-4111-8111-111111111111', 'jaffna-food-city', 'Jaffna Food City', '#1B7F3B', 'LKR'),
-  ('22222222-2222-4222-8222-222222222222', 'colombo-food-city', 'Colombo Food City', '#C2410C', 'LKR');
+  ('11111111-1111-4111-8111-111111111111', 'food-city-kl', 'Food City Kuala Lumpur', '#1B7F3B', 'MYR'),
+  ('22222222-2222-4222-8222-222222222222', 'food-city-penang', 'Food City Penang', '#C2410C', 'MYR');
 
 insert into public.stores (id, tenant_id, name, address, phone, offers_delivery, delivery_fee_cents, min_order_cents) values
-  ('a1111111-1111-4111-8111-111111111111', '11111111-1111-4111-8111-111111111111', 'Jaffna Town', '12 Hospital Rd, Jaffna', '+94 21 222 0000', true, 300, 1000),
-  ('a2222222-1111-4111-8111-111111111111', '11111111-1111-4111-8111-111111111111', 'Nallur', '45 Point Pedro Rd, Nallur', '+94 21 222 0001', false, 0, 0),
-  ('b1111111-2222-4222-8222-222222222222', '22222222-2222-4222-8222-222222222222', 'Colombo 03', '88 Galle Rd, Colombo 03', '+94 11 255 0000', true, 450, 1500);
+  ('a1111111-1111-4111-8111-111111111111', '11111111-1111-4111-8111-111111111111', 'Bangsar', '12 Jalan Telawi 3, Bangsar Baru, 59100 Kuala Lumpur', '+60 3-2282 0000', true, 300, 1000),
+  ('a2222222-1111-4111-8111-111111111111', '11111111-1111-4111-8111-111111111111', 'Petaling Jaya', '45 Jalan SS 2/24, 47300 Petaling Jaya, Selangor', '+60 3-7877 0001', false, 0, 0),
+  ('b1111111-2222-4222-8222-222222222222', '22222222-2222-4222-8222-222222222222', 'George Town', '88 Lebuh Chulia, 10200 George Town, Pulau Pinang', '+60 4-261 0000', true, 450, 1500);
 
 insert into public.categories (id, tenant_id, name, sort_order) values
   ('c1111111-1111-4111-8111-111111111111', '11111111-1111-4111-8111-111111111111', 'Fruit & Veg', 1),
@@ -16,12 +17,12 @@ insert into public.categories (id, tenant_id, name, sort_order) values
   ('c2222222-2222-4222-8222-222222222222', '22222222-2222-4222-8222-222222222222', 'Bakery', 2);
 
 insert into public.products (id, tenant_id, category_id, name, description, unit) values
-  ('d1111111-1111-4111-8111-111111111111', '11111111-1111-4111-8111-111111111111', 'c1111111-1111-4111-8111-111111111111', 'Bananas', 'Ambul bananas, ripe', 'kg'),
-  ('d1111112-1111-4111-8111-111111111111', '11111111-1111-4111-8111-111111111111', 'c1111111-1111-4111-8111-111111111111', 'Red onions', 'Jaffna red onions', 'kg'),
+  ('d1111111-1111-4111-8111-111111111111', '11111111-1111-4111-8111-111111111111', 'c1111111-1111-4111-8111-111111111111', 'Pisang Berangan', 'Sweet local bananas', 'kg'),
+  ('d1111112-1111-4111-8111-111111111111', '11111111-1111-4111-8111-111111111111', 'c1111111-1111-4111-8111-111111111111', 'Red onions', null, 'kg'),
   ('d1111113-1111-4111-8111-111111111111', '11111111-1111-4111-8111-111111111111', 'c1111112-1111-4111-8111-111111111111', 'Fresh milk 1L', null, 'each'),
   ('d1111114-1111-4111-8111-111111111111', '11111111-1111-4111-8111-111111111111', 'c1111113-1111-4111-8111-111111111111', 'Basmati rice 5kg', null, 'pack'),
   ('d2222221-2222-4222-8222-222222222222', '22222222-2222-4222-8222-222222222222', 'c2222221-2222-4222-8222-222222222222', 'Carrots', null, 'kg'),
-  ('d2222222-2222-4222-8222-222222222222', '22222222-2222-4222-8222-222222222222', 'c2222222-2222-4222-8222-222222222222', 'Sourdough loaf', 'Baked daily', 'each');
+  ('d2222222-2222-4222-8222-222222222222', '22222222-2222-4222-8222-222222222222', 'c2222222-2222-4222-8222-222222222222', 'Roti canai (frozen, 10 pcs)', 'Ready to pan-fry', 'pack');
 
 insert into public.store_products (tenant_id, store_id, product_id, price_cents, stock) values
   ('11111111-1111-4111-8111-111111111111', 'a1111111-1111-4111-8111-111111111111', 'd1111111-1111-4111-8111-111111111111', 450, 100),

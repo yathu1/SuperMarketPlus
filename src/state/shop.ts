@@ -3,7 +3,13 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { kvStorage } from '../lib/storage';
 import type { Store, Tenant } from '../types';
 
-export type CartLine = { productId: string; name: string; priceCents: number; imagePath: string | null; qty: number };
+export type CartLine = {
+  productId: string;
+  name: string;
+  priceCents: number;
+  imagePath: string | null;
+  qty: number;
+};
 export const MAX_QTY = 99;
 
 type ShopState = {
@@ -24,12 +30,21 @@ export const useShop = create<ShopState>()(
       store: null,
       lines: {},
       // Prices and stock are per store, so switching store empties the cart.
-      selectStore: (tenant, store) => set(s => ({ tenant, store, lines: s.store?.id === store.id ? s.lines : {} })),
+      selectStore: (tenant, store) =>
+        set(s => ({
+          tenant,
+          store,
+          lines: s.store?.id === store.id ? s.lines : {},
+        })),
       setQty: (item, qty) =>
         set(s => {
           const lines = { ...s.lines };
           if (qty <= 0) delete lines[item.productId];
-          else lines[item.productId] = { ...item, qty: Math.min(Math.floor(qty), MAX_QTY) };
+          else
+            lines[item.productId] = {
+              ...item,
+              qty: Math.min(Math.floor(qty), MAX_QTY),
+            };
           return { lines };
         }),
       clearCart: () => set({ lines: {} }),
@@ -38,4 +53,5 @@ export const useShop = create<ShopState>()(
   ),
 );
 
-export const cartCount = (s: Pick<ShopState, 'lines'>) => Object.values(s.lines).reduce((n, l) => n + l.qty, 0);
+export const cartCount = (s: Pick<ShopState, 'lines'>) =>
+  Object.values(s.lines).reduce((n, l) => n + l.qty, 0);

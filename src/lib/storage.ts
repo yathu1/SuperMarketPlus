@@ -13,4 +13,7 @@ export const kvStorage = {
   },
 };
 
-export const queryPersister = createSyncStoragePersister({ storage: kvStorage, key: 'query-cache' });
+export const queryPersister = createSyncStoragePersister({
+  storage: kvStorage,
+  key: 'query-cache',
+});

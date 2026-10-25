@@ -25,22 +25,29 @@ const persistOptions = {
   maxAge: DAY,
   buster: 'v1',
   dehydrateOptions: {
-    shouldDehydrateQuery: (q: { queryKey: readonly unknown[]; state: { status: string } }) =>
-      q.queryKey[0] === 'catalog' && q.state.status === 'success',
+    shouldDehydrateQuery: (q: {
+      queryKey: readonly unknown[];
+      state: { status: string };
+    }) => q.queryKey[0] === 'catalog' && q.state.status === 'success',
   },
 };
 
 function App() {
   // Refetch stale data when the app returns to the foreground.
   useEffect(() => {
-    const sub = AppState.addEventListener('change', s => focusManager.setFocused(s === 'active'));
+    const sub = AppState.addEventListener('change', s =>
+      focusManager.setFocused(s === 'active'),
+    );
     return () => sub.remove();
   }, []);
 
   return (
     <SafeAreaProvider>
       <StatusBar barStyle="dark-content" />
-      <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={persistOptions}
+      >
         <SessionProvider>
           <RootNavigator />
         </SessionProvider>

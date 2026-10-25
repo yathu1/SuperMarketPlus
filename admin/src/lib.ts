@@ -40,7 +40,7 @@ export async function api(path: string, init: { method: string; body?: object })
 }
 
 export const money = (cents: number, currency: string) =>
-  new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(cents / 100);
+  new Intl.NumberFormat('en-MY', { style: 'currency', currency }).format(cents / 100); // "RM 12.50"
 export const toCents = (v: string) => Math.round(Number(v) * 100);
 export const fromCents = (c: number) => (c / 100).toFixed(2);
 

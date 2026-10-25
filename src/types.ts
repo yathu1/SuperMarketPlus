@@ -74,4 +74,9 @@ export type Order = {
   order_items?: OrderItem[];
 };
 
-export type Profile = { id: string; email: string | null; full_name: string | null; phone: string | null };
+export type Profile = {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  phone: string | null;
+};
